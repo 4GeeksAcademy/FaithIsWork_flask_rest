@@ -8,11 +8,12 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User,People,Planet,Favorite
 #from models import Person
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+
 
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
@@ -36,14 +37,43 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+user = [
+    {
+        "user_Email": "", 
+        "password":False,
+        }
+
+    ]
+
+
 @app.route('/user', methods=['GET'])
 def handle_hello():
 
     response_body = {
-        "msg": "Hello, this is your GET /user response "
+        "msg":  str(user)
     }
+    
 
     return jsonify(response_body), 200
+
+
+
+@app.route('/user', methods=['POST'])
+def add_new_post():
+    request_body = request.json
+    print("incoming request with the following body",request_body)
+    user.append(request_body)
+
+    return jsonify(user)
+
+@app.route('/favorites', methods=['GET'])
+def favorites():
+
+    return 'hello'
+
+
+
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
