@@ -98,7 +98,7 @@ def get_favorites():
 
 
 @app.route('/planet', methods=['GET'])
-def get_planet():
+def get_planets():
 
     lista = Planet.query.all()
     lista = list(map(lambda x : x.serialize(), lista))
@@ -108,6 +108,103 @@ def get_planet():
     }
     
     return jsonify(response_body), 200
+
+@app.route('/planet/<int:planet_id>', methods=['GET'])
+def get_planet(planet_id):
+    
+    planet = Planet.query.get_or_404(planet_id)  # This will return a 404 if the person is not found
+    return jsonify(planet.serialize()), 200   
+
+@app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
+def add_favorite(planet_id):
+    
+    user_id = User.query.get(1)
+   
+    if user_id is None:
+        return jsonify({'error': 'User not logged in'}), 403
+    
+    planet = Planet.query.get(planet_id)
+    if planet is None:
+        return jsonify({'error': 'Planet not found'}), 404
+    
+    existing_favorite = Favorite.query.filter_by(user_id=1, planet_id=planet_id).first()
+    if existing_favorite:
+        return jsonify({'message': 'Planet already in favorites'}), 200
+    else:
+        fav = Favorite()
+        fav.user_id = 1
+        fav.planet_id = planet_id
+
+        db.session.add(fav)
+        db.session.commit()
+        return jsonify(fav.serialize()), 200
+    
+
+@app.route('/favorite/people/<int:people_id>', methods=['POST'])
+def add_favorite_people(people_id):
+    
+    user_id = User.query.get(1)
+   
+    if user_id is None:
+        return jsonify({'error': 'User not logged in'}), 403
+    
+    people = People.query.get(people_id)
+    if people is None:
+        return jsonify({'error': 'People not found'}), 404
+    
+    existing_favorite = Favorite.query.filter_by(user_id=1, people_id=people_id).first()
+    if existing_favorite:
+        return jsonify({'message': 'Planet already in favorites'}), 200
+    else:
+        fav = Favorite()
+        fav.user_id = 1
+        fav.people_id = people_id
+
+        db.session.add(fav)
+        db.session.commit()
+        return jsonify(fav.serialize()), 200
+    
+@app.route('/favorite/people/<int:people_id>', methods=['DELETE'])
+def delete_favorite_people(people_id):
+    # Assume user_id is retrieved from session or another authentication method
+    user_id = 1  # This should be dynamically retrieved, e.g., from the session
+
+    # Ensure user is logged in
+    if user_id is None:
+        return jsonify({'error': 'User not logged in'}), 403
+
+    # Locate the favorite record
+    favorite = Favorite.query.filter_by(user_id=user_id, people_id=people_id).first()
+
+    if favorite is None:
+        return jsonify({'error': 'Favorite not found'}), 404
+
+    # Delete the favorite record
+    db.session.delete(favorite)
+    db.session.commit()
+
+    return jsonify({'message': 'Favorite people removed successfully'}), 200
+
+@app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
+def delete_favorite_planet(planet_id):
+    # Assume user_id is retrieved from session or another authentication method
+    user_id = 1  # This should be dynamically retrieved, e.g., from the session
+
+    # Ensure user is logged in
+    if user_id is None:
+        return jsonify({'error': 'User not logged in'}), 403
+
+    # Locate the favorite record
+    favorite = Favorite.query.filter_by(user_id=user_id, planet_id=planet_id).first()
+
+    if favorite is None:
+        return jsonify({'error': 'Favorite not found'}), 404
+
+    # Delete the favorite record
+    db.session.delete(favorite)
+    db.session.commit()
+
+    return jsonify({'message': 'Favorite planet removed successfully'}), 200
 
 
 # this only runs if `$ python src/app.py` is executed
